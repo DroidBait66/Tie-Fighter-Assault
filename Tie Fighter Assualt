@@ -1,0 +1,440 @@
+/*
+  Tie Fighter Assault 
+
+  Created by Droidbait 
+ 
+ */
+
+new p5();
+var bg = 66;
+var total = 15;
+var screen = 1; //<-- can change to 3 to start game
+
+/*
+screen == ...
+1: start screen
+2: cut scene
+3: actual game
+4: end screen
+5: credits
+*/
+
+// vars for scene
+var timer = 0;
+var timerV = 0;
+var volumeDecrease = .01;
+var IMs = .15
+
+// images for the scene
+var RCx = -900;
+var RCy = -100
+var CapitalShipSpeed = 17;
+var ISDx = -200;
+var ISDy = -200;
+var ISDX = -150;
+var ISDY = -275;
+var ISDX2 = -700;
+var ISDY2 = -450;
+
+
+//star variables 
+var locX = [];
+var locY = [];
+
+// Game vars
+var ties = [];
+var XW;
+let mX = mouseX;
+
+var w = 400;
+var h = 400;
+var timerP = 0;
+var sec = 0
+var hits = 0;
+
+function preload() {
+  //images
+  X = loadImage('images/XWing.png');
+  tie = loadImage('images/tie.png');
+  isd = loadImage('images/ISD.png');
+  RC = loadImage('images/rebel_corvette.png');
+  //voice lines
+  I = loadSound('sound/Imp.m4a');
+  r1 = loadSound('sound/r1.m4a');
+  /* r2 = loadSound('sound/r2.m4a'); this has been cut due to timing issues*/
+  r2 = loadSound('sound/r3.m4a');
+  r3 = loadSound('sound/r4.m4a');
+  r4 = loadSound('sound/r5.m4a');
+  IM = loadSound('sound/ImpMarch.mp3');
+}
+
+
+
+
+
+function setup() {
+  createCanvas(w, h);
+  //star wars font
+  textFont('NEWS GOTHIC');
+  textSize(50);
+  textAlign(CENTER)
+  XW = new XWING();
+  for (var i = 0; i < total; i++) {
+    ties[i] = new Tie(XW);
+  }
+}
+
+function draw() {
+
+
+
+
+  background(bg);
+  if (screen == 1) {
+    startScreen();
+  } else if (screen == 2) {
+    scene();
+  } else if (screen == 3) {
+    playScreen();
+  } else if (screen == 4) {
+    endScreen();
+  } else if (screen == 5) {
+    credits();
+  }
+}
+
+function startScreen() {
+
+  textAlign(CENTER);
+  fill('yellow');
+  textSize(50);
+  text('Tie Fighter Assault', width / 2, height / 2 - 50);
+  textSize(30);
+  text('Click anywhere to begin', width / 2, height / 2);
+
+}
+
+
+
+//this function draws stars
+function stars() {
+  fill(232, 230, 229);
+  noStroke();
+  for (var i = 0; i < 200; i++) {
+
+    locX[i] = random(width);
+    locY[i] = random(height);
+    ellipse(locX[i], locY[i], 1.5, 1.5);
+  }
+}
+
+
+
+
+
+
+//this is the cutscene after the play button is pressed
+function scene() {
+  stars();
+  image(RC, RCx, RCy, 25, 25);
+  if (RCx - 10 <= 0) {
+    RCx += 70
+    RCy += 25
+  } else if (RCx <= 200) {
+    RCx += CapitalShipSpeed;
+    CapitalShipSpeed -= 1;
+    RCy += 4;
+  }
+  /* if (timerV == 1840) {
+       FT.loop();         cut due to time restraints
+   }*/
+  if (timer == 10) {
+    IM.loop();
+
+    IM.setVolume(IMs);
+  }
+  if (timerV == 1220) {
+    screen = 3;
+  }
+
+
+
+
+  if (timer < 50) {
+    timer++;
+
+  } else if (timer <= 200) {
+    image(isd, ISDx, ISDy, 250, 200);
+    image(isd, ISDX, ISDY, 250, 200);
+    image(isd, ISDX2, ISDY2, 250, 200);
+    /*    if (keyIsDown(32)){   //this function is only for testing 
+            screen  3;
+      }*/
+    if (ISDx <= 20) {
+      ISDx += 17;
+      ISDy += 17;
+    }
+    if (ISDX <= 170 && timer <= 200) {
+      ISDX += 15;
+      ISDY += 14;
+    }
+    if (ISDX2 <= -75 && timer <= 205) {
+      ISDX2 += 15;
+      ISDY2 += 14;
+    }
+  }
+  console.log(timerV);
+  if (ISDx >= 20) {
+    timerV += 1;
+    if (timerV == 50) {
+      I.setVolume(.75);
+      I.play();
+    }
+    if (timerV == 400) {
+      r1.setVolume(3);
+      r1.play();
+    }
+    if (timerV == 570) {
+      r2.setVolume(3);
+      r2.play();
+    }
+    if (timerV == 780) {
+      r3.setVolume(3);
+      r3.play();
+    }
+    if (timerV == 990) {
+      r4.setVolume(3);
+      r4.play();
+    }
+
+  }
+}
+
+function mousePressed() {
+
+
+  if (screen == 1 || screen == 4) {
+    screen += 1
+  } else if (screen == 5) {
+    screen = screen - 1;
+  }
+}
+
+function playScreen() {
+  stars();
+
+  if (timerP <= 500) {
+    timerP++
+    fill('yellow');
+    textAlign(CENTER);
+    textSize(19);
+    text('Scans indicate a heavy presense of Tibbana gas.\n You cannot shoot the Ties or we will all burn up \nbut if you can get their attention\n off us long enough, we may be able to escape.\n Dont get rammed by Tie fighters, \nand may the force be with you pilot', w / 2, h / 2);
+  }
+  for (var i = 0; i < ties.length; i++) {
+    if (timerP > 450) {
+      ties[i].render();
+      ties[i].updateTie();
+      ties[i].back();
+      ties[i].XWCollision();
+    }
+
+
+
+
+
+  }
+  XW.render();
+  XW.border();
+  keyPressed();
+  mousePressed();
+  XW.shields();
+  XW.timer();
+}
+
+class Tie {
+  constructor(XW) {
+    this.XW = XW;
+    this.size = 20;
+    this.x = random(0, w);
+    this.y = random(-100, -300);
+    this.speed = 1.5;
+    this.chance = random(0, 100) < 20;
+
+  }
+  //draws tie fighters
+  render() {
+    imageMode(CENTER);
+    image(tie, this.x, this.y, this.size, this.size);
+  }
+  //moves tie fighters
+  updateTie() {
+    this.y += this.speed;
+    // speeds up tie fighters
+    if (sec >= 30 && sec <= 59) {
+      this.speed += .0001;
+    }
+
+    if (sec >= 60 && sec <= 119) {
+      this.speed += .001;
+    }
+    if (sec >= 120) {
+      this.speed += .01;
+    }
+  }
+  // respawns tie fighters after they leave the screen
+  back() {
+    if (this.y >= 450 && this.chance) {
+      this.x = this.XW.x;
+      this.y = random(-60, -300);
+
+    } else if (this.y >= 450) {
+      this.y = random(-60, -300);
+      this.x = random(0, w);
+
+    }
+  }
+  // when the x wing hits a tie fighter, you can lose up to 20% of your shields and the tie is respawns at a random y location out of the screen and at on your x location 
+  XWCollision() {
+    if (this.XW.x < this.x + this.size / 2) {
+      if (this.XW.x + this.XW.size / 2 > this.x - this.size / 2) {
+        if (this.XW.y < this.y + this.size / 2) {
+          if (this.XW.y + this.XW.size > this.y - this.size / 2) {
+            this.y = random(-60, -300);
+            this.XW.lives -= this.XW.loss;
+            this.XW.loss = Math.floor(Math.random() * 20);
+            console.log(this.XW.loss);
+            hits += 1;
+            console.log(hits);
+            this.y = random(-60, -300);
+            this.x = this.XW.x;
+
+
+          }
+        }
+      }
+    }
+  }
+
+
+}
+
+
+function keyPressed() {
+  if (keyIsDown(RIGHT_ARROW)) {
+    XW.moveR()
+  } else if (keyIsDown(LEFT_ARROW)) {
+    XW.moveL()
+  }
+  if (keyIsDown(UP_ARROW)) {
+    XW.moveU()
+  } else if (keyIsDown(DOWN_ARROW)) {
+    XW.moveD()
+  }
+
+
+
+}
+class XWING {
+  constructor(Tie) {
+    this.tie = Tie
+    this.size = 35;
+    this.x = w / 2;
+    this.y = h - 30;
+    this.Lspeed = 30;
+    this.move = 2;
+    this.lives = 100;
+    this.loss = Math.floor(Math.random() * 20);
+  }
+  // draws x wing
+  render() {
+    image(X, this.x, this.y, this.size, this.size);
+    console.log(this.x + ' ' + this.y);
+  }
+  // these methods move the x wing
+  moveR() {
+    this.x += this.move;
+  }
+  moveL() {
+    this.x -= this.move;
+  }
+  moveU() {
+    this.y -= this.move;
+  }
+  moveD() {
+    this.y += this.move;
+  }
+  // this method prevents the x wing from leaving to the right or left of the screen but allows it to go out of the screen from the bottom and come down from the top and vice versa
+  border() {
+    if (this.x >= 370) {
+      this.x = w - 30;
+    }
+    if (this.x <= 30) {
+      this.x = 30;
+    }
+    if (this.y == 440) {
+      this.y = -40;
+    } else if (this.y == -40) {
+      this.y = 440;
+    }
+  }
+  // self explanatory: a timer
+  timer() {
+    text('Time: ' + sec, 30, 20);
+    if (frameCount % 60 == 0 && this.lives >= 0) {
+      sec++;
+    }
+  }
+  // your shields, also your health
+  shields() {
+    fill('red');
+    textSize(20);
+    textAlign(CENTER)
+    text('Shields: ' + this.lives + '%', 340, 20);
+    if (this.lives <= 0) {
+      screen = 4;
+    }
+
+  }
+
+
+}
+
+// this is the game over screen
+function endScreen() {
+  textAlign(CENTER)
+  fill('red');
+  textSize(50);
+  text('GAME OVER', w / 2, h / 2 - 60);
+  textSize(20);
+  fill('Yellow');
+  text('Click anywhere to go to the Credits', w / 2, h / 2);
+  fill(255);
+  text('You survived: ' + sec + ' seconds', w / 2, h / 2 + 50);
+  text('You were hit ' + hits + ' times', w / 2, h / 2 + 70);
+  fill('Yellow');
+  text('HIGH SCORE: ', w/2,h/2+120);
+  text('132 seconds: Annabelle',w/2,h/2+140);
+
+}
+
+//these are the credits
+//many thanks to everyone who allowed my game to become what it is
+function credits() {
+  textSize(50);
+  fill('yellow');
+  text('CREDITS', w / 2, 50);
+  textSize(20);
+  text('Code by Droidbait     ', w / 2, 80);
+  textSize(30);
+  text('Voice Lines:', w / 2, 120);
+  textSize(20);
+  text('I: F. M.', w / 2, 150);
+  text('R1/R3: Droidbait   ', w / 2, 170);
+  text('R2: I. G.', w / 2, 190);
+  text('R4: D. G.', w / 2, 210);
+  text('Song by: John Williams and \n the London symphony Orchestra', w / 2, 235);
+  text('Help with debugging: N. D. ', w / 2, 290);
+  text("Help with debugging: Q. S. ", w / 2, 310);
+  fill('white');
+  text('Click anywhere to go back', w / 2, 350);
+}
